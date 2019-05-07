@@ -1,0 +1,192 @@
+<html>
+<head>
+<meta charset="utf-8"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/89/three.min.js"></script>
+<script src="FirstPersonControls.js">
+</script>
+<script>
+	//以下の３行はinit関数内でも良いかも
+	var keyboard = {};
+	var player = { height:1.8, speed:0.2, turnSpeed:Math.PI*0.02 };
+	var USE_WIREFRAME = false;
+	//ページの読み込みを待つ
+	window.addEventListener('load',init);
+	//ほぼ全体をfunctionで囲む
+	function init(){
+	//canvasのサイズwidth,heightを変える
+	const width = 1450;
+	const height = 700;
+	var clock = new THREE.Clock();
+	// シーンを作成
+	//THREEをTRHEEと書かないように。間違えやすい上に気づきづらい
+	const scene = new THREE.Scene(); 	 
+	 //レンダラーを作成
+	const renderer = new THREE.WebGLRenderer({
+	canvas: document.querySelector('#myCanvas'),antialias: true});
+	//canvasのサイズを変える
+	renderer.setSize( width, height );	 
+	//レンダラの色変更できる
+	renderer.setClearColor(new THREE.Color(0x5c3566));	 
+	
+	//カメラを作成
+	// THREE.PerspectiveCamera ( fov画角, aspect画面アスペクト比, near手前, far奥 )
+	var camera = new THREE.PerspectiveCamera(75, width/height,0.1,2000);
+	//カメラ自体の座標　座標は変数.position.set(x,y,z)　OpenGL は右手座標系で上下がy右左がx前後がz
+	//コレを変えると向きも変わるが、なぜなのかわからない	
+	camera.position.set(10,10, 10);	
+	//カメラが見る座標を最初に指定しないと、原点を軸にしか回転しないという仕様になる
+
+	var camControls = new THREE.FirstPersonControls(camera);
+        camControls.lookSpeed = 0.25;
+        camControls.movementSpeed = 20;
+        camControls.noFly = true;
+        camControls.lookVertical = true;
+        camControls.constrainVertical = true;
+        camControls.verticalMin = 1.0;
+        camControls.verticalMax = 2.0;
+        camControls.lon = -150;
+        camControls.lat = 120;
+
+	/*var trackballControls = new THREE.TrackballControls(camera);
+
+        trackballControls.rotateSpeed = 1.0;
+        trackballControls.zoomSpeed = 1.0;
+        trackballControls.panSpeed = 1.0;*/
+//        trackballControls.noZoom=false;
+//        trackballControls.noPan=false;
+        /*trackballControls.staticMoving = true;*/
+        
+        
+        
+	//全体にうっすら光を当てる
+	
+	
+	//点ライト
+	/*SpotLight( color : Integer, intensity : Float, distance : Float, angle : Radians, penumbra : Float, decay : Float )
+	color - (optional) hexadecimal color of the light. Default is 0xffffff (white).
+	intensity - (optional) numeric value of the light's strength/intensity. Default is 1.
+
+	distance - Maximum distance from origin where light will shine 
+	whose intensity is attenuated linearly based on distance from origin. 
+	angle - Maximum angle of light dispersion from its direction 
+	whose upper bound is Math.PI/2.
+	penumbra - Percent of the spotlight cone that is attenuated due to penumbra. 
+	Takes values between zero and 1. Default is zero.
+	decay - The amount the light dims along the distance of the light.
+
+	Creates a new SpotLight.*/
+	var spotlight = new THREE.SpotLight(0xffffff, 1.9,1500,1,1,0);
+	var spot2 = new THREE.SpotLight(0xffffff,1.9,1500,1,1,0);
+	var light = new THREE.AmbientLight(0xffffff,1.5);
+	
+	//影の解像度っぽい
+
+	spot2.position.set(0,0,0);
+	spot2.target.position.set(50,50,50);
+	scene.add(spot2);
+	//光源の座標　
+	spotlight.position.set(150,250,150);
+	scene.add(spotlight);
+	// ライトの影表示を有効化
+	
+	
+	scene.add(light);
+for(let i = 2; i < 38; i++){
+for(let j = 2;j < 38; j++){
+
+if(j%5==2||i%5==2){
+continue;
+}
+	var building_height = 100+Math.random()*100;
+	var building_height_2 =Math.random()*50;
+	if(17<=i&&i<=22&&17<=j&&j<=22){
+	var boxgeometry2 = new THREE.BoxGeometry(10,25+building_height,10);
+	var boxmaterial2 = new THREE.MeshStandardMaterial({color:0x555753});
+	var mesh2 = new THREE.Mesh(boxgeometry2,boxmaterial2);
+	
+		mesh2.position.set(10+15*i,(25+building_height)/2,10+15*j);
+	
+	}else{
+		var boxgeometry2 = new THREE.BoxGeometry(10,25+building_height_2,10);
+	var boxmaterial2 = new THREE.MeshStandardMaterial({color:0x555753});
+	var mesh2 = new THREE.Mesh(boxgeometry2,boxmaterial2);
+		mesh2.position.set(10+15*i,(25+building_height_2)/2,10+15*j);
+	}
+	scene.add(mesh2);
+	}}
+		
+	//四角
+	var box_geometry = new THREE.BoxGeometry(1,1,1);	
+	var box_material = new THREE.MeshLambertMaterial({color:0xff4444});
+	//Meshコンストラクタ内でgeometry,materialを生成しないでいちいち変数を作る		
+	var mesh = new THREE.Mesh(box_geometry,box_material);
+	
+	mesh.position.set(0,2,0);
+	
+	
+	
+	scene.add(mesh);
+	
+	//平面
+	var plane_geometry = new THREE.PlaneGeometry(600,600);	
+	var plane_material = new THREE.MeshLambertMaterial({color:0xffffff,side: THREE.DoubleSide,});	
+	//Meshコンストラクタ内でgeometry,materialを生成しないでいちいち変数を作る
+	var plane= new THREE.Mesh(plane_geometry,plane_material);
+	
+	plane.rotation.x = -0.5 * Math.PI;
+	plane.position.set(300,0,300);
+	spotlight.target=plane;
+	
+	
+	scene.add(plane);
+	
+	 var pointColor = "#ccffcc";
+        var pointLight = new THREE.PointLight(pointColor);
+        pointLight.position.set(100,50,100);
+        pointLight.distance = 100;
+        scene.add(pointLight);
+	//オブジェクトの大きさに依ってカメラの動くスピードも変える
+	//オブジェクト名.scale.xでｘの値を取得
+	player.speed=plane.scale.x /2;
+	//コレを書かないとplaneに影がつかない
+	renderer.shadowMap.enabled = true;
+	
+	//軸
+	var axes = new THREE.AxesHelper(20);
+        scene.add(axes);
+        
+        function setCamControls() {
+
+        }
+        
+        animate();
+
+//一回描画するだけでOKならループ関数は要らない
+	function animate(){
+		requestAnimationFrame(animate);
+	
+		mesh.rotation.x += 0.01;
+		mesh.rotation.y += 0.02;
+		 var delta = clock.getDelta();
+		 camControls.update(delta);
+
+	//今回の本題はココから
+	//なぜこの文で動くかはいまは考えない　
+	//camera.rotation.yってなに？
+	//console.logで見たらcamera.rotation.yの値は全く変わってない
+	// Keyboard movement inputs
+		
+		//レンダリング
+		
+		renderer.render(scene, camera);
+	}
+	}	//initのカッコは以下のコードを囲んでも囲まなくても動く上のif文群は囲まないと駄目animetion関数の中にも入れないと駄目
+	
+	
+	
+ </script>
+</head>
+<body >
+ <canvas id="myCanvas"></canvas>
+</body>
+</html>
